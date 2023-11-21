@@ -3,58 +3,39 @@ import DetectArea from "./components/DetectArea";
 import Box from "./components/Box";
 
 const App = () => {
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [count, setCount] = useState(6);
 
   const [boxComps, setBoxComps] = useState([
-    <Box />,
-    <Box />,
-    <Box />,
-    <Box />,
-    <Box />,
+    <Box count={1} />,
+    <Box count={2} />,
+    <Box count={3} />,
+    <Box count={4} />,
+    <Box count={5} />,
   ]);
 
   const detectAreaRef = useRef();
   const observer = useRef();
 
   useEffect(() => {
-    observer.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setScrollPosition(window.scrollY / 2);
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setBoxComps([
+          ...boxComps,
+          <Box count={count} />,
+          <Box count={count + 1} />,
+          <Box count={count + 2} />,
+          <Box count={count + 3} />,
+          <Box count={count + 4} />,
+        ]);
 
-          setBoxComps([
-            ...boxComps,
-            <Box />,
-            <Box />,
-            <Box />,
-            <Box />,
-            <Box />,
-          ]);
-        }
-      },
-      { threshold: 0 }
-    );
+        setCount(count + 5);
+      }
+    });
 
     observer.current.observe(detectAreaRef.current);
 
     return () => observer.current.unobserve(detectAreaRef.current);
-  }, []);
-
-  const scrollEvent = () => {
-    console.log(window.scrollY);
-  };
-
-  useEffect(() => {
-    const watch = () => window.addEventListener("scroll", scrollEvent);
-
-    watch();
-
-    return () => window.removeEventListener("scroll", scrollEvent);
-  }, []);
-
-  useEffect(() => {
-    window.scrollTo(0, scrollPosition);
-  }, [scrollPosition]);
+  }, [boxComps]);
 
   return (
     <ul className="flex flex-col items-center gap-20">
