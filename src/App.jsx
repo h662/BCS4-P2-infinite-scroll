@@ -1,31 +1,68 @@
-import { useEffect, useRef } from "react";
-
-import A from "./components/A";
-import B from "./components/B";
-import C from "./components/C";
-import D from "./components/D";
-import Header from "./components/Header";
+import { useEffect, useRef, useState } from "react";
+import DetectArea from "./components/DetectArea";
+import Box from "./components/Box";
 
 const App = () => {
-  const bRef = useRef();
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  const [boxComps, setBoxComps] = useState([
+    <Box />,
+    <Box />,
+    <Box />,
+    <Box />,
+    <Box />,
+  ]);
+
+  const detectAreaRef = useRef();
   const observer = useRef();
 
   useEffect(() => {
-    observer.current = new IntersectionObserver((entries) => {
-      console.log(entries[0].isIntersecting);
-    });
+    observer.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setScrollPosition(window.scrollY / 2);
 
-    observer.current.observe(bRef.current);
+          setBoxComps([
+            ...boxComps,
+            <Box />,
+            <Box />,
+            <Box />,
+            <Box />,
+            <Box />,
+          ]);
+        }
+      },
+      { threshold: 0 }
+    );
+
+    observer.current.observe(detectAreaRef.current);
+
+    return () => observer.current.unobserve(detectAreaRef.current);
   }, []);
 
+  const scrollEvent = () => {
+    console.log(window.scrollY);
+  };
+
+  useEffect(() => {
+    const watch = () => window.addEventListener("scroll", scrollEvent);
+
+    watch();
+
+    return () => window.removeEventListener("scroll", scrollEvent);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, scrollPosition);
+  }, [scrollPosition]);
+
   return (
-    <>
-      <Header />
-      <A />
-      <B bRef={bRef} />
-      <C />
-      <D />
-    </>
+    <ul className="flex flex-col items-center gap-20">
+      {boxComps.map((v, i) => (
+        <li key={i}>{v}</li>
+      ))}
+      <DetectArea detectAreaRef={detectAreaRef} />
+    </ul>
   );
 };
 
